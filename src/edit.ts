@@ -73,7 +73,7 @@ export class EditRegion implements Edit {
 					char: this.char,
 					fg: this.fg_color,
 					bg: this.bg_color,
-				})
+				});
 			}
 		}
 		return output;

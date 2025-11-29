@@ -1,3 +1,6 @@
+import type { RGB } from "./image";
+import type { Char, RawEdit } from "./websocket";
+
 export const sleep = Bun.sleep;
 
 export function hsvToRgb(h: number, s: number, v: number){
@@ -30,4 +33,33 @@ export function coordsToChunkCoords(x: number, y: number): [number, number, numb
 	if(x < 0) tile_x = 16 + tile_x;
 	if(y < 0) tile_y = 8 + tile_y;
 	return [chunk_x, chunk_y, tile_x, tile_y];
+}
+
+export function rgb2hex(color: RGB): number {
+	return (color[0] << 16) | (color[1] << 8) | color[2];
+}
+
+export function hex2rgb(color: number): RGB {
+	return [
+		(color & 0xFF0000) >> 16,
+		(color & 0x00FF00) >> 8,
+		(color & 0x0000FF),
+	];
+}
+
+export function char2ansi(char: Char): string {
+	let [fgr, fgg, fgb] = hex2rgb(char.fg);
+	let [bgr, bgg, bgb] = hex2rgb(char.bg);
+	return `\x1b[38;2;${fgr};${fgg};${fgb};48;2;${bgr};${bgb};${bgb}m${char.char}\x1b[39;49m`;
+}
+
+export function raw2char(raw: RawEdit): Char {
+	let [cy, cx, sy, sx, _t, char, _i, fg, bg] = raw;
+	return {
+		x: cx * 16 + sx,
+		y: cy * 8 +sy,
+		char,
+		fg,
+		bg,
+	}
 }
