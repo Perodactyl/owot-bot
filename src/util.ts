@@ -1,16 +1,17 @@
 import type { RGB } from "./image";
-import type { Char, RawEdit } from "./websocket";
+import type { Char } from "./websocket";
+import type { RawEdit } from "./owot";
 
 export const sleep = Bun.sleep;
 
 export function hsvToRgb(h: number, s: number, v: number){
-    var r, g, b;
+    let r: number, g: number, b: number;
 
-    var i = Math.floor(h * 6);
-    var f = h * 6 - i;
-    var p = v * (1 - s);
-    var q = v * (1 - f * s);
-    var t = v * (1 - (1 - f) * s);
+    let i = Math.floor(h * 6);
+    let f = h * 6 - i;
+    let p = v * (1 - s);
+    let q = v * (1 - f * s);
+    let t = v * (1 - (1 - f) * s);
 
     switch(i % 6){
         case 0: r = v, g = t, b = p; break;
@@ -30,9 +31,13 @@ export function coordsToChunkCoords(x: number, y: number): [number, number, numb
 	let chunk_y = Math.floor(y / 8);
 	let tile_x = x % 16;
 	let tile_y = y % 8;
-	if(x < 0) tile_x = 16 + tile_x;
-	if(y < 0) tile_y = 8 + tile_y;
+	if(tile_x < 0) tile_x = 16 + tile_x;
+	if(tile_y < 0) tile_y = 8 + tile_y;
 	return [chunk_x, chunk_y, tile_x, tile_y];
+}
+
+export function chunkCoordsToCoords([chunk_x, chunk_y, tile_x, tile_y]: [number, number, number, number]): [number, number] {
+	return [ chunk_x * 16 + tile_x, chunk_y * 8 + tile_y ];
 }
 
 export function rgb2hex(color: RGB): number {
@@ -50,7 +55,7 @@ export function hex2rgb(color: number): RGB {
 export function char2ansi(char: Char): string {
 	let [fgr, fgg, fgb] = hex2rgb(char.fg);
 	let [bgr, bgg, bgb] = hex2rgb(char.bg);
-	return `\x1b[38;2;${fgr};${fgg};${fgb};48;2;${bgr};${bgb};${bgb}m${char.char}\x1b[39;49m`;
+	return `\x1b[38;2;${fgr};${fgg};${fgb};48;2;${bgr};${bgg};${bgb}m${char.char}\x1b[39;49m`;
 }
 
 export function raw2char(raw: RawEdit): Char {
@@ -63,3 +68,38 @@ export function raw2char(raw: RawEdit): Char {
 		bg,
 	}
 }
+
+export function deep_equal<T>(a: T, b: T): boolean {
+	if(typeof a == "object") {
+		let keys = [];
+		for(let key in a) {
+			keys.push(key);
+			if(!deep_equal(a[key], b[key])) return false;
+		}
+		
+		for(let key in b) {
+			if(!keys.includes(key)) return false;
+		}
+
+		return true;
+	} else {
+		return a === b;
+	}
+}
+
+/** Equivalent to deep_equal, but does not check for keys present in B that are missing in A. */
+// export function deep_matches<T>(a: Partial<T>, b: T): true | string {
+// 	if(typeof a == "object" && typeof b == "object") {
+// 		for(let key in a) {
+// 			let result = deep_matches(a[key], b[key]);
+// 			if(result !== true) {
+// 				return `.${key}${result}`;
+// 			}
+// 		}
+// 		return true;
+// 	} else {
+// 		if(typeof a !== typeof b) return `: type mismatch (${typeof a} vs ${typeof b})`;
+// 		else if(a != b) return `: value mismatch (${a} vs ${b})`;
+// 		else return true;
+// 	}
+// }

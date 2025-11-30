@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import type { Char } from "./websocket";
 import { rgb2hex } from "./util";
 
@@ -195,8 +194,3 @@ export function to_edits(image: Image, x: number, y: number): Char[] {
 
 	return output;
 }
-
-// let test = new PPM(await readFile("test.ppm"));
-// console.log(to_octants(test).map(row=>row.map(({char, fg, bg})=>{
-// 	return `\x1b[38;2;${fg[0]};${fg[1]};${fg[2]};48;2;${bg[0]};${bg[1]};${bg[2]}m${char}\x1b[39;49m`;
-// }).join("")).join("\n"));
